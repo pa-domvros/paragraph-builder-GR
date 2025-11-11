@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Δημιουργία Παραγράφου</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+        }
+        .hidden {
+            display: none;
+        }
+        /* Simple transition for the result box */
+        #result-container, #model-result-container {
+            transition: all 0.5s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        #result-container.visible, #model-result-container.visible {
+            max-height: 1000px; /* Arbitrary large number */
+            opacity: 1;
+            margin-top: 1.5rem; /* 6 */
+        }
+        
+        /* Dice styles */
+        #dice-face {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            transition: transform 0.2s ease-out;
+            margin: 0 auto;
+        }
+        #dice-face:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        #dice-image {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Shake animation */
+        .rolling {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Dropdown styles */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27292.4%27%20height%3D%27292.4%27%3E%3Cpath%20fill%3D%27%236B7280%27%20d%3D%27M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-13%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2013l128%20128c3.6%203.6%207.8%205.4%2013%205.4s9.4-1.8%2013-5.4L287%2095c3.6-3.6%205.4-7.8%205.4-13%200-5-1.8-9.2-5.4-12.8z%27%2F%3E%3C%2Fsvg%3E");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 0.65em auto;
+            padding-right: 2.5rem;
+        }
+
+        /* --- UPDATED MINIMAL PRINT STYLES --- */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body > * {
+                display: none !important;
+            }
+            #main-builder-wrapper {
+                display: block !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            #main-builder-wrapper .max-w-3xl > .text-center {
+                display: none !important;
+            }
+            #main-builder-wrapper .max-w-3xl .space-y-8 > * {
+                display: none !important;
+            }
+            #main-builder-wrapper .max-w-3xl .space-y-8 > #result-container {
+                display: block !important;
+                max-height: none !important;
+                opacity: 1 !important;
+                margin-top: 0 !important; 
+                border: none !important;
+                box-shadow: none !important;
+            }
+            #result-container > div {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            /* Hide all children of the result box... */
+            #result-container .bg-stone-50 > * {
+                display: none !important;
+            }
+            /* ...EXCEPT for the printed topic and final paragraph. */
+            #result-container .bg-stone-50 > #printedTopic,
+            #result-container .bg-stone-50 > #finalParagraph {
+                display: block !important;
+                font-family: 'Times New Roman', Times, serif;
+                color: #000 !important;
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Specific styles for the topic */
+            #printedTopic {
+                font-size: 14pt;
+                font-weight: bold;
+                margin-bottom: 1rem !important;
+            }
+            /* Specific styles for the paragraph */
+            #finalParagraph {
+                font-size: 12pt;
+                line-height: 1.5;
+                white-space: pre-wrap; 
+            }
+        }
+
+    </style>
+</head>
+<body class="bg-stone-100 text-gray-800 p-4 md:p-8">
+
+    <header class="max-w-3xl mx-auto mb-8 flex items-center justify-center gap-4 no-print">
+        <img src="greek logo.png" alt="Λογότυπο Ed Hub" class="h-20 w-20 rounded-full border-2 border-gray-300 shadow-md">
+        <h1 class="text-3xl md:text-4xl font-bold text-red-800">
+            Δημιουργία Παραγράφου
+        </h1>
+    </header>
+
+    <div id="step-1-wrapper" class="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-10 mb-8 no-print">
+        
+        <div class="text-center mb-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                Βήμα 1: Βρες το Θέμα σου
+            </h2>
+            <p class="text-lg text-gray-600 text-justify">
+                Πάτησε το ζάρι για να βρεις ένα τυχαίο θέμα για την παράγραφό σου.
+            </p>
+        </div>
+
+        <div id="dice-container" class="py-4">
+            <div id="dice-face">
+                <img id="dice-image" src="dice-question.png" alt="Κάνε κλικ για να ρίξεις το ζάρι">
+            </div>
+        </div>
+        <p id="roll-result" class="text-center text-2xl font-semibold text-red-800 min-h-[2em]">Η μοίρα σου σε περιμένει...</p>
+
+        <div id="model-builder-container" class="hidden space-y-6 mt-6 pt-6 border-t border-gray-200">
+            <h3 id="model-topic-title" class="text-2xl font-semibold text-gray-800 text-center">...</h3>
+            
+            <p class="text-center text-gray-600 text-justify">Χρησιμοποίησε τα παρακάτω μενού για να συνθέσεις μια <strong class="font-semibold">δειγματική παράγραφο</strong> για το θέμα σου. Αυτό είναι απλώς ένα παράδειγμα για να σε βοηθήσει.</p>
+
+            <div>
+                <label for="model-topic-sentence" class="block text-sm font-medium text-gray-700 mb-1">Θεματική Πρόταση/Περίοδος (Κύρια Ιδέα)</label>
+                <select id="model-topic-sentence" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"></select>
+            </div>
+            
+            <div>
+                <label for="model-supporting-1" class="block text-sm font-medium text-gray-700 mb-1">Πρόταση Ανάπτυξης 1 (Παράδειγμα/Αιτία)</label>
+                <select id="model-supporting-1" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"></select>
+            </div>
+            
+            <div>
+                <label for="model-supporting-2" class="block text-sm font-medium text-gray-700 mb-1">Πρόταση Ανάπτυξης 2 (Περισσότερες Λεπτομέρειες)</label>
+                <select id="model-supporting-2" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"></select>
+            </div>
+            
+            <div>
+                <label for="model-concluding" class="block text-sm font-medium text-gray-700 mb-1">Κατακλείδα (Σύνοψη)</label>
+                <select id="model-concluding" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"></select>
+            </div>
+
+            <div class="text-center pt-4">
+                <button id="assemble-model-button" class="bg-red-700 text-white px-8 py-3 rounded-lg font-medium text-lg shadow-md hover:bg-red-800 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    Σύνθεση Δειγματικής Παραγράφου
+                </button>
+            </div>
+
+            <div id="model-result-container" class="relative">
+                <div class="bg-stone-50 border border-stone-200 rounded-lg p-6">
+                    <h4 class="text-xl font-semibold text-gray-800 mb-4">Η Δειγματική Παράγραφός σου:</h4>
+                    <p id="model-paragraph" class="text-base text-gray-700 leading-relaxed text-justify">...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="next-step-container" class="hidden text-center mt-8">
+            <button id="show-main-builder-button" class="w-full md:w-auto bg-amber-600 text-white px-8 py-3 rounded-lg font-medium text-lg shadow-md hover:bg-amber-700 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 no-print">
+                Ωραία! Τώρα γράψε τη δική σου (Βήμα 2) &darr;
+            </button>
+        </div>
+    </div>
+
+    <div id="main-builder-wrapper" class="hidden">
+        <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-10">
+            
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                    Βήμα 2: Γράψε τη Δική σου Παράγραφο
+                </h2>
+                <p class="text-lg text-gray-600 text-justify">
+                    Χρησιμοποίησε το θέμα σου για να χτίσεις τη δική σου δυνατή, ενιαία παράγραφο.
+                </p>
+            </div>
+
+            <div class="space-y-8">
+                
+                <div class="text-right no-print">
+                    <button id="help-button" class="bg-amber-600 text-white px-4 py-2 rounded-lg font-medium text-sm shadow-md hover:bg-amber-700 transition-colors">
+                        Βοήθεια: Συνδετικές Λέξεις & Φράσεις
+                    </button>
+                </div>
+
+                <div class="no-print">
+                    <label for="studentTopic" class="block text-xl font-semibold text-gray-800 mb-2">Διάλεξε το Θέμα σου</label>
+                    <p class="text-sm text-gray-500 mb-3 text-justify">Επίλεξε ένα θέμα από τη λίστα για να γράψεις.</p>
+                    <select id="studentTopic" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white">
+                        <option value="" selected disabled>-- Παρακαλώ, επίλεξε ένα θέμα --</option>
+                        <option value="Τα πλεονεκτήματα του διαβάσματος βιβλίων">Τα πλεονεκτήματα του διαβάσματος βιβλίων</option>
+                        <option value="Η αγαπημένη μου γιορτή και γιατί">Η αγαπημένη μου γιορτή και γιατί</option>
+                        <option value="Η επίδραση της τεχνολογίας στην εκπαίδευση">Η επίδραση της τεχνολογίας στην εκπαίδευση</option>
+                        <option value="Γιατί είναι σημαντικό να μαθαίνουμε ιστορία">Γιατί είναι σημαντικό να μαθαίνουμε ιστορία</option>
+                        <option value="Οι προκλήσεις της ζωής σε μια μεγαλούπολη">Οι προκλήσεις της ζωής σε μια μεγαλούπολη</option>
+                        <option value="Τα οφέλη της υγιεινής διατροφής">Τα οφέλη της υγιεινής διατροφής</option>
+                        <option value="Πώς να είσαι καλός φίλος">Πώς να είσαι καλός φίλος</option>
+                        <option value="Η δουλειά των ονείρων μου και πώς θα την αποκτήσω">Η δουλειά των ονείρων μου και πώς θα την αποκτήσω</option>
+                        <option value="Η σημασία της προστασίας των ζώων">Η σημασία της προστασίας των ζώων</option>
+                        <option value="Μια περιγραφή της πόλης μου">Μια περιγραφή της πόλης μου</option>
+                        <option value="Τα θετικά και αρνητικά των online αγορών">Τα θετικά και αρνητικά των online αγορών</option>
+                        <option value="Γιατί πρέπει να μαθαίνουμε να μαγειρεύουμε">Γιατί πρέπει να μαθαίνουμε να μαγειρεύουμε</option>
+                        <option value="Ο ρόλος της μουσικής στη ζωή μου">Ο ρόλος της μουσικής στη ζωή μου</option>
+                        <option value="Πώς να μειώσουμε το άγχος στην καθημερινή ζωή">Πώς να μειώσουμε το άγχος στην καθημερινή ζωή</option>
+                        <option value="Το μέλλον των μεταφορών (π.χ. ηλεκτρικά αυτοκίνητα)">Το μέλλον των μεταφορών (π.χ. ηλεκτρικά αυτοκίνητα)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="topicSentence" class="block text-xl font-semibold text-gray-800 mb-2">Η Θεματική Πρόταση/Περίοδος</label>
+                    <p class="text-sm text-gray-500 mb-3 no-print text-justify">Αυτή είναι η πιο σημαντική πρόταση. Χρησιμοποίησε το θέμα που διάλεξες για να γράψεις την κύρια ιδέα.</p>
+                    <textarea id="topicSentence" rows="2" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" placeholder="π.χ. «Η εκμάθηση μιας νέας γλώσσας προσφέρει πολυάριθμα γνωστικά οφέλη.»"></textarea>
+                </div>
+
+                <div>
+                    <label for="supportingSentences" class="block text-xl font-semibold text-gray-800 mb-2">Προτάσεις Ανάπτυξης (Λεπτομέρειες)</label>
+                    <p class="text-sm text-gray-500 mb-3 no-print text-justify">Δώσε τα στοιχεία, τα γεγονότα, τα παραδείγματα και τις εξηγήσεις που υποστηρίζουν τη θεματική σου πρόταση/περίοδο. (Στόχευσε σε 3-5 προτάσεις).</p>
+                    <textarea id="supportingSentences" rows="5" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" placeholder="π.χ. «Πρώτον, μπορεί να βελτιώσει τη μνήμη... Μελέτες έχουν δείξει... Επιπλέον, τα δίγλωσσα άτομα...»"></textarea>
+                </div>
+
+                <div>
+                    <label for="concludingSentence" class="block text-xl font-semibold text-gray-800 mb-2">Η Κατακλείδα</label>
+                    <p class="text-sm text-gray-500 mb-3 no-print text-justify">Αυτή η (συχνά προαιρετική) πρόταση συνοψίζει την άποψή σου. Δεν πρέπει να εισάγει μια νέα ιδέα.</p>
+                    <textarea id="concludingSentence" rows="2" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" placeholder="π.χ. «Επομένως, τα πνευματικά πλεονεκτήματα της εκμάθησης γλωσσών είναι αδιαμφισβήτητα.»"></textarea>
+                </div>
+
+                <div class="no-print">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Λίστα Τελικού Ελέγχου</h3>
+                    <div class="space-y-3 bg-yellow-50 p-5 rounded-lg border border-yellow-200">
+                        <div class="flex items-center">
+                            <input id="checkUnity" name="checkUnity" type="checkbox" class="h-5 w-5 text-red-700 border-gray-300 rounded focus:ring-red-500">
+                            <label for="checkUnity" class="ml-3 block text-base text-gray-700 text-justify">
+                                <strong class="font-medium">Ενότητα:</strong> Κάθε πρόταση υποστηρίζει άμεσα τη Θεματική Πρόταση/Περίοδο;
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="checkCoherence" name="checkCoherence" type="checkbox" class="h-5 w-5 text-red-700 border-gray-300 rounded focus:ring-red-500">
+                            <label for="checkCoherence" class="ml-3 block text-base text-gray-700 text-justify">
+                                <strong class="font-medium">Συνοχή:</strong> Οι προτάσεις ρέουν ομαλά και με λογική σειρά;
+                            </LAbel>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="checkDevelopment" name="checkDevelopment" type="checkbox" class="h-5 w-5 text-red-700 border-gray-300 rounded focus:ring-red-500">
+                            <label for="checkDevelopment" class="ml-3 block text-base text-gray-700 text-justify">
+                                <strong class="font-medium">Ανάπτυξη:</strong> Υπάρχουν αρκετές λεπτομέρειες, αποδείξεις ή εξηγήσεις;
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center pt-4 border-t border-gray-200 no-print">
+                    <button id="assembleButton" class="w-full md:w-auto bg-red-700 text-white px-8 py-3 rounded-lg font-medium text-lg shadow-md hover:bg-red-800 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        Σύνθεση της Παραγράφου μου
+                    </button>
+                </div>
+
+                <div id="result-container" class="relative">
+                    <div class="bg-stone-50 border border-stone-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 no-print">Η Παράγραφός σου:</h3>
+                        
+                        <h4 id="printedTopic" class="hidden text-xl font-bold mb-4"></h4>
+                        
+                        <p id="finalParagraph" class="text-base text-gray-700 leading-relaxed whitespace-pre-wrap text-justify">...</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 mt-6 no-print">
+                            <button id="copyButton" class="w-full sm:w-auto bg-amber-600 text-white px-5 py-2 rounded-md font-medium hover:bg-amber-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                                Αντιγραφή στο Πρόχειρο
+                            </button>
+                            <button id="resetButton" class="w-full sm:w-auto bg-stone-400 text-stone-800 px-5 py-2 rounded-md font-medium hover:bg-stone-500 transition-colors focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2">
+                                Ξεκίνα από την Αρχή
+                            </button>
+                            <button id="printButton" class="w-full sm:w-auto bg-stone-700 text-white px-5 py-2 rounded-md font-medium hover:bg-stone-800 transition-colors focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2">
+                                Εκτύπωση / Αποθήκευση ως PDF
+                            </button>
+                        </div>
+                        <span id="copyMessage" class="absolute top-0 right-0 -mt-3 -mr-3 bg-black text-white text-xs font-bold py-1 px-2 rounded-full hidden no-print">Αντιγράφηκε!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-red-800">Συνδετικές Λέξεις και Φράσεις</h3>
+                <button id="modal-close-help" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="space-y-4 text-gray-700 text-justify">
+                <p>Για να συνδέουμε ομαλά τις ιδέες μας και να περνάμε φυσικά από τη μία πρόταση στην επόμενη, χρειαζόμαστε τις κατάλληλες συνδετικές λέξεις και φράσεις. Αυτές οι φράσεις-κλειδιά μας βοηθούν να δείξουμε τη σχέση μεταξύ των προτάσεων. Μπορούν να δηλώνουν:</p>
+                
+                <ul class="list-disc list-inside space-y-2">
+                    <li class="text-justify"><strong>Χρονική Σχέση:</strong> π.χ. αρχικά, στη συνέχεια, έπειτα, αργότερα, ταυτόχρονα, εν τω μεταξύ, πριν, αφού, μόλις, τελικά...</li>
+                    <li class="text-justify"><strong>Επεξήγηση:</strong> π.χ. δηλαδή, με άλλα λόγια, πιο συγκεκριμένα, αυτό σημαίνει ότι, για να το πούμε απλά...</li>
+                    <li class="text-justify"><strong>Συμπέρασμα:</strong> π.χ. επομένως, συνεπώς, άρα, λοιπόν, κατά συνέπεια, συμπερασματικά, γι' αυτό τον λόγο...</li>
+                    <li class="text-justify"><strong>Αιτιολόγηση:</strong> π.χ. επειδή, γιατί, εφόσον, καθώς, εξαιτίας του/της... (π.χ. εξαιτίας αυτού)...</li>
+                    <li class="text-justify"><strong>Παράδειγμα:</strong> π.χ. για παράδειγμα, λόγου χάρη, όπως...</li>
+                    <li class="text-justify"><strong>Αντίθεση / Εναντίωση:</strong> π.χ. αλλά, όμως, ωστόσο, παρόλα αυτά, αν και, μολονότι, εντούτοις, από την άλλη πλευρά, αντίθετα...</li>
+                    <li class="text-justify"><strong>Τόπος:</strong> π.χ. εδώ, εκεί, δίπλα, απέναντι, πάνω, κάτω, από τη μία πλευρά...</li>
+                    <li class="text-justify"><strong>Πρόσθεση / Έμφαση:</strong> π.χ. πρώτον, δεύτερον, επιπλέον, ακόμη, επίσης, επιπροσθέτως, πράγματι, βεβαίως, αξίζει να σημειωθεί ότι...</li>
+                </ul>
+
+                <h4 class="text-xl font-semibold text-gray-800 pt-4 border-t border-gray-200 mt-4">Χρήσιμες φράσεις για τη ροή του κειμένου:</h4>
+                <ul class="list-disc list-inside space-y-2">
+                    <li class="text-justify">Εκτός από αυτό, είναι εξίσου σημαντικό να...</li>
+                    <li class="text-justify">Ένα άλλο εξίσου σπουδαίο στοιχείο είναι ότι...</li>
+                    <li class="text-justify">Δεν θα πρέπει να παραβλέψουμε το γεγονός ότι...</li>
+                    <li class="text-justify">Σε αυτό το σημείο, πρέπει να τονίσουμε / να επισημάνουμε ότι...</li>
+                    <li class="text-justify">Συμπληρωματικά με τα παραπάνω, αξίζει να σημειωθεί πως...</li>
+                    <li class="text-justify">Τέλος, κλείνοντας, θα ήταν χρήσιμο να αναφέρουμε / να εξετάσουμε...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer class="max-w-3xl mx-auto mt-10 text-center text-gray-500 text-sm no-print">
+        <p>✨✍️ Παναγιώτης Δόμβρος, Εκπαιδευτικός Αγγλικών-Θεατρολόγος, Με την Επιφύλαξη Παντός Δικαιώματος ✍️✨</p>
+    </footer>
+
+
+    <script>
+        // --- SCRIPT (STEP 1: TOPIC ROLLER & MODEL BUILDER) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- STEP 1 ELEMENTS ---
+            const diceFace = document.getElementById('dice-face');
+            const diceImage = document.getElementById('dice-image');
+            const rollResult = document.getElementById('roll-result');
+            const modelBuilderContainer = document.getElementById('model-builder-container');
+            const modelTopicTitle = document.getElementById('model-topic-title');
+            const nextStepContainer = document.getElementById('next-step-container');
+            const showMainBuilderButton = document.getElementById('show-main-builder-button');
+            const mainBuilderWrapper = document.getElementById('main-builder-wrapper');
+
+            // --- MODEL BUILDER ELEMENTS ---
+            const selectTS = document.getElementById('model-topic-sentence');
+            const selectS1 = document.getElementById('model-supporting-1');
+            const selectS2 = document.getElementById('model-supporting-2');
+            const selectCS = document.getElementById('model-concluding');
+            const assembleModelButton = document.getElementById('assemble-model-button');
+            const modelResultContainer = document.getElementById('model-result-container');
+            const modelParagraph = document.getElementById('model-paragraph');
+
+            // --- NEW: HELP MODAL ELEMENTS ---
+            const helpButton = document.getElementById('help-button');
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpButton = document.getElementById('modal-close-help');
+
+            // --- STATE ---
+            let isRolling = false;
+
+            // --- IMAGE ASSETS ---
+            const diceImages = [
+                'dice1.png', 'dice2.png', 'dice3.png',
+                'dice4.png', 'dice5.png', 'dice6.png'
+            ];
+            const defaultImage = 'dice-question.png';
+
+            // --- GREEK TOPIC & PHRASE BANK ---
+            const topicBank = {
+                1: {
+                    title: 'Θέμα 1: Τα Οφέλη της Άσκησης',
+                    topicSentences: [
+                        "Η τακτική άσκηση είναι απαραίτητη για τη διατήρηση της καλής υγείας.",
+                        "Η σωματική δραστηριότητα έχει πολλές θετικές επιδράσεις τόσο στο σώμα όσο και στο μυαλό.",
+                        "Το να ασκείσαι είναι ένας από τους καλύτερους τρόπους για να παραμείνεις υγιής."
+                    ],
+                    supporting1: [
+                        "Για παράδειγμα, δυναμώνει τους μύες και τα οστά, κάτι που βοηθά στην πρόληψη τραυματισμών.",
+                        "Πρώτον, η σωματική άσκηση βοηθά στον έλεγχο του βάρους καίγοντας θερμίδες.",
+                        "Ένα σημαντικό όφελος είναι ότι βελτιώνει την καρδιαγγειακή υγεία, κάνοντας την καρδιά πιο δυνατή."
+                    ],
+                    supporting2: [
+                        "Επιπλέον, η άσκηση είναι γνωστό ότι μειώνει το άγχος και μπορεί να βελτιώσει τη διάθεσή σου.",
+                        "Επίσης, αυξάνει τα επίπεδα ενέργειας, με αποτέλεσμα να νιώθεις λιγότερη κούραση κατά τη διάρκεια της ημέρας.",
+                        "Επιπροσθέτως, μελέτες δείχνουν ότι οι δραστήριοι άνθρωποι συχνά κοιμούνται καλύτερα το βράδυ."
+                    ],
+                    concludingSentences: [
+                        "Συμπερασματικά, το να βρίσκεις χρόνο για άσκηση είναι ζωτικό μέρος ενός υγιεινού τρόπου ζωής.",
+                        "Επομένως, όλοι πρέπει να προσπαθούν να είναι δραστήριοι για τουλάχιστον 30 λεπτά τις περισσότερες ημέρες.",
+                        "Με λίγα λόγια, τα πλεονεκτήματα της άσκησης είναι πολύ σημαντικά για να τα αγνοήσουμε."
+                    ]
+                },
+                2: {
+                    title: 'Θέμα 2: Η Σημασία της Εκμάθησης Αγγλικών',
+                    topicSentences: [
+                        "Η εκμάθηση Αγγλικών είναι εξαιρετικά χρήσιμη στον σημερινό παγκοσμιοποιημένο κόσμο.",
+                        "Υπάρχουν πολλοί λόγοι για τους οποίους η εκμάθηση Αγγλικών είναι μια σημαντική δεξιότητα.",
+                        "Η γνώση Αγγλικών ανοίγει πολλές νέες ευκαιρίες για τους ανθρώπους."
+                    ],
+                    supporting1: [
+                        "Πρώτον, είναι η κύρια γλώσσα της διεθνούς επικοινωνίας, των επιχειρήσεων και της επιστήμης.",
+                        "Για αρχή, σου επιτρέπει να επικοινωνείς με ανθρώπους από πολλές διαφορετικές χώρες.",
+                        "Ένα σημαντικό πλεονέκτημα είναι ότι μπορεί να βελτιώσει σημαντικά τις επαγγελματικές σου προοπτικές."
+                    ],
+                    supporting2: [
+                        "Επιπλέον, πολλές από τις καλύτερες ταινίες, βιβλία και μουσική στον κόσμο είναι στα Αγγλικά.",
+                        "Επίσης, η γνώση Αγγλικών κάνει τα ταξίδια σε ξένες χώρες πολύ πιο εύκολα και ευχάριστα.",
+                        "Ακόμη, οι περισσότερες πληροφορίες στο διαδίκτυο είναι στα Αγγλικά."
+                    ],
+                    concludingSentences: [
+                        "Συνοψίζοντας, η ικανότητα να μιλάς Αγγλικά είναι ένα πολύτιμο εργαλείο για προσωπική και επαγγελματική ανάπτυξη.",
+                        "Επομένως, είναι σαφές ότι η εκμάθηση Αγγλικών είναι μια αξιόλογη επένδυση χρόνου.",
+                        "Κλείνοντας, τα οφέλη της εκμάθησης Αγγλικών είναι πολυάριθμα και σημαντικά."
+                    ]
+                },
+                3: {
+                    title: 'Θέμα 3: Θετικά και Αρνητικά των Social Media',
+                    topicSentences: [
+                        "Τα μέσα κοινωνικής δικτύωσης (social media) έχουν αλλάξει δραματικά τον τρόπο που αλληλεπιδρούμε.",
+                        "Η χρήση των social media έχει τόσο θετικές όσο και αρνητικές επιπτώσεις.",
+                        "Είναι σημαντικό να κατανοήσουμε τις καλές και τις κακές πλευρές των social media."
+                    ],
+                    supporting1: [
+                        "Από τη μία πλευρά, είναι ένα φανταστικό εργαλείο για να συνδέεσαι με φίλους και οικογένεια, ειδικά με αυτούς που είναι μακριά.",
+                        "Ένα βασικό όφελος είναι ότι παρέχουν άμεση πρόσβαση σε ειδήσεις και πληροφορίες από όλο τον κόσμο.",
+                        "Για παράδειγμα, πλατφόρμες όπως το Instagram βοηθούν τους ανθρώπους να μοιραστούν τις ιδέες και τη δημιουργικότητά τους."
+                    ],
+                    supporting2: [
+                        "Από την άλλη πλευρά, μπορούν να γίνουν εθιστικά και να οδηγήσουν τους ανθρώπους να ξοδεύουν λιγότερο χρόνο σε δραστηριότητες του πραγματικού κόσμου.",
+                        "Ωστόσο, μπορεί επίσης να αποτελέσουν πηγή παραπληροφόρησης και διαδικτυακού εκφοβισμού (cyberbullying).",
+                        "Ένα σημαντικό μειονέκτημα είναι ότι μπορούν να επηρεάσουν αρνητικά την ψυχική υγεία προκαλώντας άγχος ή ζήλια."
+                    ],
+                    concludingSentences: [
+                        "Συμπερασματικά, τα social media είναι ένα ισχυρό εργαλείο που πρέπει να χρησιμοποιείται με προσοχή.",
+                        "Επομένως, είναι σημαντικό να βρούμε μια υγιή ισορροπία κατά τη χρήση αυτών των πλατφορμών.",
+                        "Με λίγα λόγια, ενώ τα social media έχουν τα οφέλη τους, πρέπει επίσης να γνωρίζουμε τους κινδύνους τους."
+                    ]
+                },
+                4: {
+                    title: 'Θέμα 4: Προστατεύοντας το Περιβάλλον μας',
+                    topicSentences: [
+                        "Η προστασία του περιβάλλοντος είναι μία από τις πιο σημαντικές προκλήσεις που αντιμετωπίζουμε σήμερα.",
+                        "Υπάρχουν πολλά απλά πράγματα που μπορούμε να κάνουμε καθημερινά για να βοηθήσουμε τον πλανήτη μας.",
+                        "Όλοι έχουν ευθύνη να φροντίζουν τον φυσικό κόσμο."
+                    ],
+                    supporting1: [
+                        "Μία από τις ευκολότερες ενέργειες είναι η μείωση, η επαναχρησιμοποίηση και η ανακύκλωση υλικών όπως το πλαστικό και το χαρτί.",
+                        "Για παράδειγμα, μπορούμε να εξοικονομήσουμε πολύ νερό κάνοντας μικρότερης διάρκειας ντους και κλείνοντας τη βρύση.",
+                        "Πρώτον, πρέπει να προσπαθούμε να χρησιμοποιούμε λιγότερη ενέργεια στο σπίτι, σβήνοντας τα φώτα και τις ηλεκτρονικές συσκευές."
+                    ],
+                    supporting2: [
+                        "Μια άλλη χρήσιμη αλλαγή είναι να περπατάμε, να ποδηλατούμε ή να χρησιμοποιούμε τα μέσα μαζικής μεταφοράς αντί να οδηγούμε αυτοκίνητο.",
+                        "Επιπλέον, η φύτευση δέντρων και η υποστήριξη τοπικών, φιλικών προς το περιβάλλον επιχειρήσεων κάνει μεγάλη διαφορά.",
+                        "Μπορούμε επίσης να βοηθήσουμε αποφεύγοντας τα πλαστικά μίας χρήσης, όπως οι σακούλες και τα μπουκάλια νερού."
+                    ],
+                    concludingSentences: [
+                        "Συνοψίζοντας, ακόμη και μικρές αλλαγές στις καθημερινές μας συνήθειες μπορούν να έχουν μεγάλο θετικό αντίκτυπο.",
+                        "Κλείνοντας, αν όλοι συνεργαστούμε, μπορούμε να κάνουμε τον πλανήτη μας πιο καθαρό και υγιή.",
+                        "Επομένως, είναι ζωτικής σημασίας να αναλάβουμε όλοι δράση τώρα για να προστατεύσουμε το περιβάλλον μας για το μέλλον."
+                    ]
+                },
+                5: {
+                    title: 'Θέμα 5: Τα Οφέλη των Ταξιδιών',
+                    topicSentences: [
+                        "Το να ταξιδεύεις σε άλλες χώρες είναι μια υπέροχα εμπλουτιστική εμπειρία.",
+                        "Υπάρχουν πολλοί λόγοι για τους οποίους τα ταξίδια στο εξωτερικό σου κάνουν καλό.",
+                        "Το να βλέπεις νέα μέρη μπορεί να αλλάξει την οπτική σου για τη ζωή."
+                    ],
+                    supporting1: [
+                        "Πρώτα απ' όλα, σου επιτρέπει να γνωρίσεις από κοντά νέους πολιτισμούς, φαγητά και παραδόσεις.",
+                        "Ένα σημαντικό όφελος είναι ότι διευρύνει τους ορίζοντές σου και σε κάνει πιο ανοιχτόμυαλο.",
+                        "Για παράδειγμα, μπορείς να μάθεις μια νέα γλώσσα ή να δεις ιστορικά μνημεία για τα οποία έχεις διαβάσει μόνο σε βιβλία."
+                    ],
+                    supporting2: [
+                        "Επιπλέον, τα ταξίδια μπορεί να είναι ένας πολύ καλός τρόπος για να ξεφύγεις από την καθημερινή ρουτίνα και να χαλαρώσεις.",
+                        "Σε μαθαίνουν επίσης να είσαι πιο ανεξάρτητος και καλύτερος στην επίλυση προβλημάτων.",
+                        "Ακόμη, σου δίνεται η ευκαιρία να γνωρίσεις νέους ανθρώπους και να κάνεις φίλους από όλο τον κόσμο."
+                    ],
+                    concludingSentences: [
+                        "Συμπερασματικά, τα ταξίδια παρέχουν πολύτιμα μαθήματα ζωής και αξέχαστες αναμνήσεις.",
+                        "Με λίγα λόγια, είναι μια επένδυση στον εαυτό σου που προσφέρει πολυάριθμες ανταμοιβές.",
+                        "Επομένως, όλοι πρέπει να προσπαθήσουν να ταξιδέψουν και να εξερευνήσουν τον κόσμο αν έχουν την ευκαιρία."
+                    ]
+                },
+                6: {
+                    title: 'Θέμα 6: Η Αξία του να έχεις ένα Χόμπι',
+                    topicSentences: [
+                        "Το να έχεις ένα χόμπι είναι σημαντικό μέρος μιας ισορροπημένης και ευτυχισμένης ζωής.",
+                        "Η τακτική ενασχόληση με ένα χόμπι προσφέρει πολλά οφέλη για την ευημερία σου.",
+                        "Είναι πολύ υγιεινό να έχεις μια δραστηριότητα που κάνεις απλώς για διασκέδαση."
+                    ],
+                    supporting1: [
+                        "Καταρχάς, τα χόμπι είναι ένας πολύ καλός τρόπος για να μειώσεις το άγχος μετά από μια κουραστική μέρα στη δουλειά ή το σχολείο.",
+                        "Ένα σημαντικό όφελος είναι ότι τα χόμπι σου επιτρέπουν να μάθεις νέες δεξιότητες και να ανακαλύψεις κρυμμένα ταλέντα.",
+                        "Για παράδειγμα, δραστηριότητες όπως η ζωγραφική, η κιθάρα ή η κηπουρική σου επιτρέπουν να εκφράσεις τη δημιουργικότητά σου."
+                    ],
+                    supporting2: [
+                        "Επιπλέον, πολλά χόμπι, όπως η συμμετοχή σε μια αθλητική ομάδα ή μια λέσχη βιβλίου, σε βοηθούν να γνωρίσεις νέους ανθρώπους.",
+                        "Μπορούν επίσης να βελτιώσουν την αυτοπεποίθησή σου καθώς γίνεσαι καλύτερος στη δραστηριότητα που έχεις επιλέξει.",
+                        "Τέλος, το να έχεις ένα χόμπι μπορεί να αποτρέψει την ανία και να σου δώσει κάτι να ανυπομονείς."
+                    ],
+                    concludingSentences: [
+                        "Με λίγα λόγια, ένα χόμπι εμπλουτίζει τη ζωή σου μειώνοντας το άγχος και χτίζοντας δεξιότητες.",
+                        "Συμπερασματικά, το να βρεις ένα χόμπι που αγαπάς είναι εξαιρετικό τόσο για το μυαλό σου όσο και για την κοινωνική σου ζωή.",
+                        "Επομένως, όλοι πρέπει να αφιερώνουν χρόνο για μια ψυχαγωγική δραστηριότητα που τους φέρνει χαρά."
+                    ]
+                }
+            };
+            
+            // --- HELPER FUNCTION to populate a <select> element ---
+            const addOptionsToSelect = (selectElement, optionsArray) => {
+                selectElement.innerHTML = ''; // Clear existing options
+                optionsArray.forEach(optionText => {
+                    const option = document.createElement('option');
+                    option.value = optionText;
+                    option.textContent = optionText;
+                    selectElement.appendChild(option);
+                });
+            };
+
+            // --- FUNCTION to set up the model builder ---
+            const populateModelBuilder = (roll) => {
+                const topicData = topicBank[roll];
+                modelTopicTitle.textContent = topicData.title;
+                addOptionsToSelect(selectTS, topicData.topicSentences);
+                addOptionsToSelect(selectS1, topicData.supporting1);
+                addOptionsToSelect(selectS2, topicData.supporting2);
+                addOptionsToSelect(selectCS, topicData.concludingSentences);
+                modelBuilderContainer.classList.remove('hidden');
+                nextStepContainer.classList.remove('hidden');
+                modelResultContainer.classList.remove('visible');
+            };
+
+            // --- FUNCTION to handle the dice roll ---
+            const rollTheDice = () => {
+                if (isRolling) return;
+                isRolling = true;
+                diceFace.classList.add('rolling');
+                diceImage.src = defaultImage;
+                rollResult.textContent = 'Ρίχνει...';
+
+                setTimeout(() => {
+                    const roll = Math.floor(Math.random() * 6); // 0-5
+                    const rollNumber = roll + 1; // 1-6
+                    diceImage.src = diceImages[roll];
+                    rollResult.textContent = `Έφερες ${rollNumber}!`;
+                    diceFace.classList.remove('rolling');
+                    isRolling = false;
+                    populateModelBuilder(rollNumber);
+                }, 600); 
+            };
+
+            // --- EVENT LISTENERS (STEP 1) ---
+            diceFace.addEventListener('click', rollTheDice);
+            assembleModelButton.addEventListener('click', () => {
+                const ts = selectTS.value;
+                const s1 = selectS1.value;
+                const s2 = selectS2.value;
+                const cs = selectCS.value;
+                modelParagraph.textContent = `${ts} ${s1} ${s2} ${cs}`;
+                modelResultContainer.classList.add('visible');
+            });
+            showMainBuilderButton.addEventListener('click', () => {
+                mainBuilderWrapper.classList.remove('hidden');
+                mainBuilderWrapper.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // --- NEW: HELP MODAL LISTENERS ---
+            if (helpButton) {
+                helpButton.addEventListener('click', () => {
+                    helpModal.classList.remove('hidden');
+                });
+            }
+            if (closeHelpButton) {
+                closeHelpButton.addEventListener('click', () => {
+                    helpModal.classList.add('hidden');
+                });
+            }
+            if (helpModal) {
+                helpModal.addEventListener('click', (e) => {
+                    // Close if click is on the overlay (e.target is the modal itself)
+                    if (e.target === helpModal) {
+                        helpModal.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // --- INITIALIZATION ---
+            diceImage.src = defaultImage; // Set default image on load
+        });
+
+
+        // --- SCRIPT (STEP 2: GUIDED PARAGRAPH BUILDER) ---
+        
+        // Get all elements
+        const studentTopicEl = document.getElementById('studentTopic');
+        const topicSentenceEl = document.getElementById('topicSentence');
+        const supportingSentencesEl = document.getElementById('supportingSentences');
+        const concludingSentenceEl = document.getElementById('concludingSentence');
+        
+        const checks = [
+            document.getElementById('checkUnity'),
+            document.getElementById('checkCoherence'),
+            document.getElementById('checkDevelopment')
+        ];
+
+        const assembleButton = document.getElementById('assembleButton');
+        const resultContainer = document.getElementById('result-container');
+        const printedTopicEl = document.getElementById('printedTopic');
+        const finalParagraphEl = document.getElementById('finalParagraph');
+        
+        const copyButton = document.getElementById('copyButton');
+        const resetButton = document.getElementById('resetButton');
+        const copyMessage = document.getElementById('copyMessage');
+        const printButton = document.getElementById('printButton');
+
+        // Assemble button click listener
+        assembleButton.addEventListener('click', () => {
+            const selectedTopicText = studentTopicEl.value;
+            const topic = topicSentenceEl.value.trim();
+            const supporting = supportingSentencesEl.value.trim();
+            const concluding = concludingSentenceEl.value.trim();
+            let fullParagraph = "";
+
+            if (topic) {
+                fullParagraph += topic;
+            } else {
+                // ΑΛΛΑΓΗ 4
+                showModal("Παρακαλώ, γράψε μια θεματική πρόταση/περίοδο για να ξεκινήσεις την παράγραφό σου.");
+                return;
+            }
+            if (supporting) {
+                fullParagraph += " " + supporting;
+            }
+            if (concluding) {
+                fullParagraph += " " + concluding;
+            }
+
+            // Populate the topic for printing
+            if (selectedTopicText) {
+                printedTopicEl.textContent = 'Θέμα: ' + selectedTopicText;
+                printedTopicEl.classList.remove('hidden'); // Make it visible on screen
+            } else {
+                printedTopicEl.textContent = ''; // Clear it if no topic is selected
+                printedTopicEl.classList.add('hidden'); // Hide it on screen
+            }
+
+            finalParagraphEl.textContent = fullParagraph;
+            resultContainer.classList.add('visible');
+        });
+
+        // Copy button click listener
+        copyButton.addEventListener('click', () => {
+            const topicText = printedTopicEl.textContent;
+            const paragraphText = finalParagraphEl.textContent;
+            const textToCopy = (topicText ? topicText + '\n\n' : '') + paragraphText;
+            
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                copyMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    copyMessage.classList.add('hidden');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showModal("Συγγνώμη, η αντιγραφή απέτυχε. Παρακαλώ, κάνε το χειροκίνητα.");
+            }
+            document.body.removeChild(tempTextArea);
+        });
+
+        // Reset button click listener
+        resetButton.addEventListener('click', () => {
+            topicSentenceEl.value = '';
+            supportingSentencesEl.value = '';
+            concludingSentenceEl.value = '';
+            checks.forEach(check => check.checked = false);
+            finalParagraphEl.textContent = '...';
+            printedTopicEl.textContent = '';
+            printedTopicEl.classList.add('hidden');
+            resultContainer.classList.remove('visible');
+            
+            // Also reset the new topic dropdown
+            studentTopicEl.selectedIndex = 0;
+        });
+
+        // Print button click listener
+        printButton.addEventListener('click', () => {
+            window.print();
+        });
+
+        // Simple modal for feedback
+        function showModal(message) {
+            let modal = document.getElementById('feedback-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'feedback-modal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Ειδοποίηση</h3>
+                        <p id="modal-message" class="text-sm text-gray-600 mb-6"></p>
+                        <button id="modal-close" class="w-full bg-red-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-800 transition-colors">
+                            OK
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                modal.querySelector('#modal-close').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            }
+            modal.querySelector('#modal-message').textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
